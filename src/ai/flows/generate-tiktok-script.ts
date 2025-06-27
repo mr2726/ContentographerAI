@@ -49,7 +49,7 @@ const prompt = ai.definePrompt({
   name: 'generateTiktokVideoScriptPrompt',
   input: {schema: GenerateTiktokVideoScriptInputSchema},
   output: {schema: GenerateTiktokVideoScriptOutputSchema},
-  prompt: `You are a creative TikTok video script generator for videographers.
+  prompt: `You are a creative TikTok video script generator for videographers. Your output must be in English.
 
   Based on the videography niche provided, generate a detailed TikTok video script.
   The script should include scene descriptions, concise on-screen text, and trending audio suggestions.

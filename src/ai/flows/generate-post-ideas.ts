@@ -25,6 +25,7 @@ const GeneratePostIdeasOutputSchema = z.object({
       imageConcept: z.string().describe('The concept for the image or video.'),
       caption: z.string().describe('An engaging caption for the post.'),
       hashtags: z.string().describe('Relevant hashtags for the post.'),
+      postTime: z.string().describe('A suggested time for the post (e.g., "9:00 AM PST").'),
     })
   ).describe('An array of Instagram post ideas.'),
 });
@@ -40,10 +41,10 @@ const prompt = ai.definePrompt({
   name: 'generatePostIdeasPrompt',
   input: {schema: GeneratePostIdeasInputSchema},
   output: {schema: GeneratePostIdeasOutputSchema},
-  prompt: `You are an AI assistant specializing in generating Instagram post ideas for photographers.
+  prompt: `You are an AI assistant specializing in generating Instagram post ideas for photographers. Your output must be in English.
 
   Generate {{{postCount}}} Instagram post ideas tailored to the photographer's niche.
-  Each post idea should include an image concept, an engaging caption, and relevant hashtags.
+  Each post idea should include an image concept, an engaging caption, relevant hashtags, and a suggested posting time.
 
   Photographer's Niche: {{{niche}}}
 
@@ -51,6 +52,7 @@ const prompt = ai.definePrompt({
   - imageConcept: The concept for the image or video.
   - caption: An engaging caption for the post.
   - hashtags: Relevant hashtags for the post.
+  - postTime: A suggested time for the post (e.g., "9:00 AM PST").
   `,
 });
 
