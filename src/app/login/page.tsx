@@ -22,11 +22,11 @@ function LoginForm() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const redirectPath = searchParams.get('redirect') || '/generate';
+    const redirectPath = searchParams.get('redirect') || '/dashboard';
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast({ title: "Login Successful", description: "Welcome back!" });
+      toast({ title: "Login Successful", description: "Redirecting..." });
       router.push(redirectPath);
     } catch (error: any) {
       toast({
@@ -75,7 +75,7 @@ function LoginForm() {
           </form>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="underline">
+            <Link href={`/register${searchParams.has('redirect') ? `?redirect=${searchParams.get('redirect')}` : ''}`} className="underline">
               Register
             </Link>
           </div>

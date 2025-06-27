@@ -28,7 +28,9 @@ export default function Header() {
         <nav>
           {user ? (
             <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
+              <Button asChild variant="ghost">
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
               <Button variant="outline" onClick={handleLogout}>Logout</Button>
             </div>
           ) : (

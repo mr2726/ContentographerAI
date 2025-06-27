@@ -6,13 +6,11 @@ import NicheSelector from "./components/NicheSelector";
 import { generateContent } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import Loading from "./components/Loading";
-import ContentDisplay from "./components/ContentDisplay";
-import type { GenerateTiktokVideoScriptOutput } from "@/ai/flows/generate-tiktok-script";
-import type { GeneratePostIdeasOutput } from "@/ai/flows/generate-post-ideas";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import type { GenerateTiktokVideoScriptOutput } from "@/ai/flows/generate-tiktok-script";
+import type { GeneratePostIdeasOutput } from "@/ai/flows/generate-post-ideas";
 
 export type GeneratedDataType = (GeneratePostIdeasOutput | GenerateTiktokVideoScriptOutput) & {
   type: "posts" | "script";
@@ -25,9 +23,7 @@ function GeneratePageContent() {
 
   const { user, userData, loading: authLoading } = useAuth();
   
-  const [niche, setNiche] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [generatedData, setGeneratedData] = useState<GeneratedDataType | null>(null);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -35,8 +31,11 @@ function GeneratePageContent() {
     if (!authLoading) {
       if (!user) {
         let redirectPath = '/login';
-        if (planFromUrl) {
-          redirectPath += `?redirect=/generate?plan=${planFromUrl}`;
+        const search = searchParams.toString();
+        if (search) {
+          redirectPath += `?redirect=${encodeURIComponent(`/generate?${search}`)}`;
+        } else {
+          redirectPath += `?redirect=${encodeURIComponent('/generate')}`;
         }
         router.push(redirectPath);
       } else {
@@ -50,19 +49,22 @@ function GeneratePageContent() {
         }
       }
     }
-  }, [user, userData, authLoading, router, planFromUrl]);
+  }, [user, userData, authLoading, router, planFromUrl, searchParams]);
 
   const handleNicheSelect = async (selectedNiche: string) => {
-    if (!currentPlan) return;
-    setNiche(selectedNiche);
+    if (!currentPlan || !user) return;
     setLoading(true);
-    setGeneratedData(null);
+
     try {
-      const result = await generateContent(currentPlan, selectedNiche);
+      const result = await generateContent(currentPlan, selectedNiche, user.uid);
       if (result.error) {
         throw new Error(result.error);
       }
-      setGeneratedData(result.data as GeneratedDataType);
+      toast({
+        title: "Content Generated!",
+        description: "Redirecting you to your dashboard.",
+      });
+      router.push('/dashboard');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
       toast({
@@ -70,38 +72,17 @@ function GeneratePageContent() {
         description: errorMessage,
         variant: "destructive",
       });
-      setNiche(null);
-    } finally {
       setLoading(false);
     }
   };
 
-  const handleReset = () => {
-    setNiche(null);
-    setGeneratedData(null);
-    setLoading(false);
-  }
-
-  if (authLoading || !currentPlan) {
+  if (authLoading || loading || !currentPlan) {
     return <Loading />;
   }
 
   return (
     <div className="container mx-auto py-12 px-4">
-      {!niche && <NicheSelector onNicheSelect={handleNicheSelect} />}
-
-      {loading && <Loading />}
-      
-      {generatedData && currentPlan && (
-        <div>
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold font-headline">Your Content is Ready!</h1>
-            <p className="text-muted-foreground mt-2">Here are the ideas generated for the <span className="font-bold text-primary">{niche}</span> niche.</p>
-            <Button onClick={handleReset} variant="outline" className="mt-4">Start Over</Button>
-          </div>
-          <ContentDisplay data={generatedData} plan={currentPlan} />
-        </div>
-      )}
+      <NicheSelector onNicheSelect={handleNicheSelect} />
     </div>
   );
 }

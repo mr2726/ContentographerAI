@@ -24,6 +24,7 @@ function RegisterForm() {
     e.preventDefault();
     setLoading(true);
     const plan = searchParams.get('plan') || 'free';
+    const redirectPath = searchParams.get('redirect') || '/dashboard';
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -35,7 +36,7 @@ function RegisterForm() {
       });
 
       toast({ title: "Registration Successful", description: "Welcome! Your account has been created." });
-      router.push('/generate');
+      router.push(redirectPath);
 
     } catch (error: any) {
       toast({
@@ -85,7 +86,7 @@ function RegisterForm() {
           </form>
           <div className="mt-4 text-center text-sm">
             Already have an account?{' '}
-            <Link href="/login" className="underline">
+            <Link href={`/login${searchParams.has('redirect') ? `?redirect=${searchParams.get('redirect')}` : ''}`} className="underline">
               Login
             </Link>
           </div>
