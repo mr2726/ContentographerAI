@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, Timestamp, doc, getDoc } from 'firebase/firestore';
 
 // A helper to convert Firestore Timestamps to serializable strings
 const serializeFirestoreTimestamps = (value: any): any => {
@@ -46,4 +46,30 @@ export async function getUserContent(userId: string): Promise<any[]> {
     console.error("Error fetching user content: ", error);
     return [];
   }
+}
+
+export async function getContentById(contentId: string, userId: string): Promise<any | null> {
+    if (!contentId || !userId) {
+        return null;
+    }
+
+    try {
+        const contentRef = doc(db, 'content', contentId);
+        const docSnap = await getDoc(contentRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.userId !== userId) {
+                console.error("User does not have access to this content.");
+                return null;
+            }
+            return serializeFirestoreTimestamps({ id: docSnap.id, ...data });
+        } else {
+            console.log("No such document!");
+            return null;
+        }
+    } catch (error) {
+        console.error("Error fetching content by ID:", error);
+        return null;
+    }
 }

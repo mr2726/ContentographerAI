@@ -7,27 +7,23 @@ import { useAuth } from '@/context/AuthContext';
 import { getUserContent } from './actions';
 import Loading from '@/app/generate/components/Loading';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import ContentDisplay from '@/app/generate/components/ContentDisplay';
+import { Card } from '@/components/ui/card';
 import { format } from 'date-fns';
-import type { GenerateTiktokVideoScriptOutput } from "@/ai/flows/generate-tiktok-script";
-import type { GeneratePostIdeasOutput } from "@/ai/flows/generate-post-ideas";
+import { FileText, ArrowRight } from 'lucide-react';
 
-type GeneratedDataType =
-  | (GeneratePostIdeasOutput & { type: "posts" })
-  | (GenerateTiktokVideoScriptOutput & { type: "script" });
-
-type ContentItem = GeneratedDataType & {
+type ContentItemSummary = {
   id: string;
   createdAt: string;
   niche: string;
   plan: string;
+  type: 'posts' | 'script';
+  title?: string;
 };
 
 function DashboardContent() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [content, setContent] = useState<ContentItem[]>([]);
+  const [content, setContent] = useState<ContentItemSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,7 +34,7 @@ function DashboardContent() {
         setLoading(true);
         getUserContent(user.uid)
           .then((data) => {
-            setContent(data as ContentItem[]);
+            setContent(data as ContentItemSummary[]);
           })
           .finally(() => {
             setLoading(false);
@@ -68,20 +64,27 @@ function DashboardContent() {
           </p>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-4">
           {content.map((item) => (
-            <Card key={item.id}>
-              <CardHeader>
-                <CardTitle className="font-headline text-2xl">
-                  {item.niche} - {item.type === 'posts' ? 'Post Ideas' : 'TikTok Script'}
-                </CardTitle>
-                <CardDescription>
-                  Generated on {format(new Date(item.createdAt), 'MMMM d, yyyy')} using the '{item.plan}' plan.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ContentDisplay data={item} plan={item.plan} />
-              </CardContent>
+            <Card key={item.id} className="hover:shadow-md transition-shadow group">
+               <Link href={`/dashboard/${item.id}`} className="block">
+                <div className="p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-primary/10 p-3 rounded-lg">
+                            <FileText className="w-6 h-6 text-primary" />
+                        </div>
+                        <div>
+                            <h2 className="font-headline text-xl font-semibold">
+                                {item.niche} - {item.type === 'posts' ? 'Post Ideas' : 'TikTok Script'}
+                            </h2>
+                            <p className="text-sm text-muted-foreground">
+                                Generated on {format(new Date(item.createdAt), 'MMMM d, yyyy')}
+                            </p>
+                        </div>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                </div>
+              </Link>
             </Card>
           ))}
         </div>
