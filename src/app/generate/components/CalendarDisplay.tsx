@@ -19,7 +19,8 @@ import {
   addDays, 
   isBefore, 
   addMonths, 
-  startOfToday 
+  startOfToday,
+  endOfMonth
 } from 'date-fns';
 
 type Post = GeneratePostIdeasOutput['posts'][0];
