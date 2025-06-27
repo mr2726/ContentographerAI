@@ -4,19 +4,24 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
 
 // A helper to convert Firestore Timestamps to serializable strings
-const serializeFirestoreTimestamps = (data: any): any => {
-    for (const key in data) {
-        if (data[key] instanceof Timestamp) {
-            data[key] = data[key].toDate().toISOString();
-        } else if (typeof data[key] === 'object' && data[key] !== null) {
-            // Recurse into nested objects
-            serializeFirestoreTimestamps(data[key]);
-        } else if (Array.isArray(data[key])) {
-            // Recurse into arrays
-            data[key].forEach((item: any) => serializeFirestoreTimestamps(item));
-        }
+const serializeFirestoreTimestamps = (value: any): any => {
+    if (value === null || value === undefined) {
+        return value;
     }
-    return data;
+    if (value instanceof Timestamp) {
+        return value.toDate().toISOString();
+    }
+    if (Array.isArray(value)) {
+        return value.map(item => serializeFirestoreTimestamps(item));
+    }
+    if (typeof value === 'object') {
+        const newObj: { [key: string]: any } = {};
+        for (const key in value) {
+            newObj[key] = serializeFirestoreTimestamps(value[key]);
+        }
+        return newObj;
+    }
+    return value;
 }
 
 export async function getUserContent(userId: string): Promise<any[]> {
