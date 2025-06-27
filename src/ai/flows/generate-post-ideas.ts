@@ -1,11 +1,11 @@
 'use server';
 
 /**
- * @fileOverview A flow to generate a week's worth of Instagram post ideas tailored to a photographer's niche.
+ * @fileOverview A flow to generate Instagram post ideas tailored to a photographer's niche.
  *
- * - generateWeeklyPostIdeas - A function that generates weekly post ideas.
- * - GeneratePostIdeasInput - The input type for the generateWeeklyPostIdeas function.
- * - GeneratePostIdeasOutput - The return type for the generateWeeklyPostIdeas function.
+ * - generatePostIdeas - A function that generates post ideas.
+ * - GeneratePostIdeasInput - The input type for the generatePostIdeas function.
+ * - GeneratePostIdeasOutput - The return type for the generatePostIdeas function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -15,6 +15,7 @@ const GeneratePostIdeasInputSchema = z.object({
   niche: z
     .string()
     .describe("The photographer's niche (e.g., food, lifestyle, wedding)."),
+  postCount: z.number().describe('The number of post ideas to generate.'),
 });
 export type GeneratePostIdeasInput = z.infer<typeof GeneratePostIdeasInputSchema>;
 
@@ -25,11 +26,11 @@ const GeneratePostIdeasOutputSchema = z.object({
       caption: z.string().describe('An engaging caption for the post.'),
       hashtags: z.string().describe('Relevant hashtags for the post.'),
     })
-  ).describe('An array of Instagram post ideas for the week.'),
+  ).describe('An array of Instagram post ideas.'),
 });
 export type GeneratePostIdeasOutput = z.infer<typeof GeneratePostIdeasOutputSchema>;
 
-export async function generateWeeklyPostIdeas(
+export async function generatePostIdeas(
   input: GeneratePostIdeasInput
 ): Promise<GeneratePostIdeasOutput> {
   return generatePostIdeasFlow(input);
@@ -41,7 +42,7 @@ const prompt = ai.definePrompt({
   output: {schema: GeneratePostIdeasOutputSchema},
   prompt: `You are an AI assistant specializing in generating Instagram post ideas for photographers.
 
-  Generate a week's worth of Instagram post ideas tailored to the photographer's niche.
+  Generate {{{postCount}}} Instagram post ideas tailored to the photographer's niche.
   Each post idea should include an image concept, an engaging caption, and relevant hashtags.
 
   Photographer's Niche: {{{niche}}}

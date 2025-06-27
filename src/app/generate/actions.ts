@@ -5,7 +5,7 @@ import {
   GenerateTiktokVideoScriptOutput,
 } from "@/ai/flows/generate-tiktok-script";
 import {
-  generateWeeklyPostIdeas,
+  generatePostIdeas,
   GeneratePostIdeasOutput,
 } from "@/ai/flows/generate-post-ideas";
 
@@ -21,10 +21,13 @@ export async function generateContent(
       const result = await generateTiktokVideoScript({ niche });
       return { data: { ...result, type: "script" } };
     } else {
-      const result = await generateWeeklyPostIdeas({ niche });
-      // In a real app, you would generate more posts for Pro/Ultimate plans.
-      // For this example, we generate 7 posts for all plans.
-      // The distinction is handled in the UI (e.g., showing the calendar).
+      let postCount = 7;
+      if (plan === "pro") {
+        postCount = 30;
+      } else if (plan === "ultimate") {
+        postCount = 30;
+      }
+      const result = await generatePostIdeas({ niche, postCount });
       return { data: { ...result, type: "posts" } };
     }
   } catch (e) {
