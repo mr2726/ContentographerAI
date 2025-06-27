@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Camera, Video, Sparkles } from "lucide-react";
+import { Check, Camera, Video, Sparkles, Star } from "lucide-react";
 import Link from "next/link";
+import Autoplay from "embla-carousel-autoplay";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 
 const plans = [
   {
@@ -40,6 +42,35 @@ const plans = [
     planId: "ultimate",
   },
 ];
+
+const testimonials = [
+  {
+    quote: "Contentographer AI has completely transformed my workflow. I can generate a month's worth of content in a single afternoon!",
+    name: "Jessica Miller",
+    title: "Wedding Photographer",
+  },
+  {
+    quote: "As a videographer, coming up with fresh TikTok ideas was a constant struggle. This tool is a lifesaver. The script generation is pure gold.",
+    name: "David Chen",
+    title: "Travel Videographer",
+  },
+  {
+    quote: "I was skeptical at first, but the quality of the content ideas is outstanding. It understands my niche perfectly.",
+    name: "Sophia Rodriguez",
+    title: "Food Photographer",
+  },
+  {
+    quote: "The calendar view in the Ultimate plan helps me stay organized and consistent. My engagement has skyrocketed since I started using it.",
+    name: "Michael Adams",
+    title: "Lifestyle Blogger",
+  },
+  {
+    quote: "Simple to use, powerful results. It's the best investment I've made for my social media presence.",
+    name: "Emily White",
+    title: "Product Photographer",
+  },
+];
+
 
 export default function Home() {
   return (
@@ -82,6 +113,55 @@ export default function Home() {
               <p className="text-muted-foreground mt-2">Leverage cutting-edge AI to create unique and relevant content for your audience.</p>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="py-20 lg:py-32 bg-background px-4">
+        <div className="container mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">
+            Loved by Creators Everywhere
+          </h2>
+          <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+            See what our users are saying about their experience with Contentographer AI.
+          </p>
+          <Carousel
+            plugins={[
+              Autoplay({
+                delay: 3000,
+                stopOnInteraction: true,
+              }),
+            ]}
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full max-w-5xl mx-auto mt-12"
+          >
+            <CarouselContent>
+              {testimonials.map((testimonial, index) => (
+                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                  <div className="p-1 h-full">
+                    <Card className="flex flex-col justify-between h-full text-left shadow-lg">
+                      <CardContent className="p-6 space-y-4">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                          ))}
+                        </div>
+                        <p className="text-muted-foreground italic">"{testimonial.quote}"</p>
+                      </CardContent>
+                      <CardFooter className="p-6 pt-0">
+                        <div>
+                          <p className="font-semibold font-headline">{testimonial.name}</p>
+                          <p className="text-sm text-muted-foreground">{testimonial.title}</p>
+                        </div>
+                      </CardFooter>
+                    </Card>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
         </div>
       </section>
 
