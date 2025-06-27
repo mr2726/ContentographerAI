@@ -13,9 +13,9 @@ import { format } from 'date-fns';
 import type { GenerateTiktokVideoScriptOutput } from "@/ai/flows/generate-tiktok-script";
 import type { GeneratePostIdeasOutput } from "@/ai/flows/generate-post-ideas";
 
-type GeneratedDataType = (GeneratePostIdeasOutput | GenerateTiktokVideoScriptOutput) & {
-  type: "posts" | "script";
-};
+type GeneratedDataType =
+  | (GeneratePostIdeasOutput & { type: "posts" })
+  | (GenerateTiktokVideoScriptOutput & { type: "script" });
 
 type ContentItem = GeneratedDataType & {
   id: string;

@@ -12,16 +12,13 @@ export default function ContentDisplay({ data, plan }: ContentDisplayProps) {
   if (!data) return null;
 
   if (data.type === "script") {
-    // @ts-ignore
     return <ScriptDisplay data={data} />;
   }
 
   if (data.type === "posts") {
     if (plan === "ultimate") {
-      // @ts-ignore
       return <CalendarDisplay data={data} />;
     }
-    // @ts-ignore
     return <PostCards data={data} />;
   }
 

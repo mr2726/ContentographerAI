@@ -12,9 +12,10 @@ import { db } from "@/lib/firebase";
 import type { GenerateTiktokVideoScriptOutput } from "@/ai/flows/generate-tiktok-script";
 import type { GeneratePostIdeasOutput } from "@/ai/flows/generate-post-ideas";
 
-export type GeneratedDataType = (GeneratePostIdeasOutput | GenerateTiktokVideoScriptOutput) & {
-  type: "posts" | "script";
-};
+export type GeneratedDataType =
+  | (GeneratePostIdeasOutput & { type: "posts" })
+  | (GenerateTiktokVideoScriptOutput & { type: "script" });
+
 
 function GeneratePageContent() {
   const router = useRouter();
