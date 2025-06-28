@@ -1,17 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Gem } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 
 export default function Header() {
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
+    if (user) {
+      localStorage.removeItem(`userContent_${user.uid}`);
+    }
     await auth.signOut();
     router.push('/');
   };
@@ -28,13 +32,25 @@ export default function Header() {
         <nav>
           {user ? (
             <div className="flex items-center gap-4">
+               {userData?.plan && (
+                <Badge variant="outline" className="flex items-center gap-1.5 capitalize">
+                  <Gem className="w-3.5 h-3.5" />
+                  {userData.plan} Plan
+                </Badge>
+              )}
               <Button asChild variant="ghost">
                 <Link href="/dashboard">Dashboard</Link>
+              </Button>
+              <Button asChild variant="ghost">
+                <Link href="/pricing">Pricing</Link>
               </Button>
               <Button variant="outline" onClick={handleLogout}>Logout</Button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
+              <Button asChild variant="ghost">
+                <Link href="/pricing">Pricing</Link>
+              </Button>
               <Button asChild variant="ghost">
                 <Link href="/login">Login</Link>
               </Button>

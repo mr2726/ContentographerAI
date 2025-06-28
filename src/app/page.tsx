@@ -90,7 +90,7 @@ export default function Home() {
           </p>
           <div className="mt-8 flex justify-center gap-4">
             <Button asChild size="lg" className="font-bold">
-              <Link href="#pricing">Choose Your Plan</Link>
+              <Link href="/pricing">Choose Your Plan</Link>
             </Button>
           </div>
         </div>
@@ -197,7 +197,7 @@ export default function Home() {
                 </CardContent>
                 <CardFooter>
                   <Button asChild className="w-full font-bold" variant={plan.featured ? "default" : "outline"}>
-                    <Link href={`/generate?plan=${plan.planId}`}>{plan.cta}</Link>
+                    <Link href={'/pricing'}>{plan.cta}</Link>
                   </Button>
                 </CardFooter>
               </Card>
