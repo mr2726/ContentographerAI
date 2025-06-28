@@ -3,17 +3,18 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, Timestamp, updateDoc, deleteField } from 'firebase/firestore';
 import { LoaderCircle } from 'lucide-react';
+
+interface UserData {
+  plan: 'free' | 'pro' | 'ultimate';
+  planSubscribedAt?: Timestamp;
+}
 
 interface AuthContextType {
   user: User | null;
   userData: UserData | null;
   loading: boolean;
-}
-
-interface UserData {
-  plan: 'free' | 'pro' | 'ultimate';
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,14 +36,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (user) {
         setLoading(true);
         const userDocRef = doc(db, 'users', user.uid);
-        unsubscribeFirestore = onSnapshot(userDocRef, 
-          (doc) => {
-            if (doc.exists()) {
-              setUserData(doc.data() as UserData);
+        unsubscribeFirestore = onSnapshot(userDocRef,
+          async (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data() as UserData;
+
+              if ((data.plan === 'pro' || data.plan === 'ultimate') && data.planSubscribedAt) {
+                const subscribedDate = data.planSubscribedAt.toDate();
+                const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+                const expirationDate = new Date(subscribedDate.getTime() + thirtyDaysInMs);
+
+                if (new Date() > expirationDate) {
+                  // Subscription has expired. This update will trigger the listener again.
+                  await updateDoc(userDocRef, {
+                    plan: 'free',
+                    planSubscribedAt: deleteField()
+                  });
+                } else {
+                  // Subscription is active.
+                  setUserData(data);
+                  setLoading(false);
+                }
+              } else {
+                // User is on a free plan or data is missing.
+                setUserData(data);
+                setLoading(false);
+              }
             } else {
               setUserData(null);
+              setLoading(false);
             }
-            setLoading(false);
           },
           (error) => {
             console.error("Error fetching user data with snapshot: ", error);

@@ -7,7 +7,7 @@ import { generateContent } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import Loading from "./components/Loading";
 import { useAuth } from "@/context/AuthContext";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, deleteField } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { GenerateTiktokVideoScriptOutput } from "@/ai/flows/generate-tiktok-script";
 import type { GeneratePostIdeasOutput } from "@/ai/flows/generate-post-ideas";
@@ -45,7 +45,17 @@ function GeneratePageContent() {
 
         if (planFromUrl && planFromUrl !== userData?.plan) {
           const userDocRef = doc(db, 'users', user.uid);
-          setDoc(userDocRef, { plan: planFromUrl }, { merge: true })
+          const dataToSet: { plan: string; planSubscribedAt?: any } = {
+            plan: planFromUrl,
+          };
+
+          if (planFromUrl === "pro" || planFromUrl === "ultimate") {
+            dataToSet.planSubscribedAt = serverTimestamp();
+          } else {
+            dataToSet.planSubscribedAt = deleteField();
+          }
+          
+          setDoc(userDocRef, dataToSet, { merge: true })
             .catch(e => console.error("Failed to update plan", e));
         }
       }
