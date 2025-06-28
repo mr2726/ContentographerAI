@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -11,32 +11,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { MailCheck } from 'lucide-react';
 
 function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [registrationComplete, setRegistrationComplete] = useState(false);
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const plan = searchParams.get('plan') || 'free';
-    const redirectPath = searchParams.get('redirect') || '/dashboard';
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      const plan = searchParams.get('plan') || 'free';
       await setDoc(doc(db, 'users', user.uid), {
         email: user.email,
         plan: plan,
       });
 
-      toast({ title: "Registration Successful", description: "Welcome! Your account has been created." });
-      router.push(redirectPath);
+      await sendEmailVerification(user);
+      await auth.signOut();
+
+      toast({ 
+        title: "Registration Successful!", 
+        description: "Please check your email to verify your account." 
+      });
+      
+      setRegistrationComplete(true);
 
     } catch (error: any) {
       toast({
@@ -48,6 +55,30 @@ function RegisterForm() {
       setLoading(false);
     }
   };
+
+  if (registrationComplete) {
+    return (
+       <div className="flex items-center justify-center py-12 px-4">
+          <Card className="w-full max-w-md text-center">
+            <CardHeader>
+              <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
+                <MailCheck className="w-12 h-12 text-primary" />
+              </div>
+              <CardTitle className="text-2xl font-headline mt-4">Verify Your Email</CardTitle>
+              <CardDescription>We've sent a verification link to <strong>{email}</strong>. Please check your inbox and follow the link to complete your registration.</CardDescription>
+            </CardHeader>
+            <CardContent>
+               <p className="text-sm text-muted-foreground">
+                Click the link in the email to activate your account.
+              </p>
+              <Button asChild variant="link" className="mt-4">
+                <Link href="/login">Back to Login</Link>
+              </Button>
+            </CardContent>
+          </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center py-12 px-4">

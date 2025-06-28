@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +25,21 @@ function LoginForm() {
     const redirectPath = searchParams.get('redirect') || '/dashboard';
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      if (!user.emailVerified) {
+        await auth.signOut(); // Sign out the user
+        await sendEmailVerification(user); // Resend verification email
+        toast({
+          title: "Email Not Verified",
+          description: "Please check your inbox to verify your email. A new link has been sent.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       toast({ title: "Login Successful", description: "Redirecting..." });
       router.push(redirectPath);
     } catch (error: any) {
@@ -34,7 +48,6 @@ function LoginForm() {
         description: error.message,
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
   };
