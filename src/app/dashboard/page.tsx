@@ -27,20 +27,47 @@ function DashboardContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        router.push('/login');
-      } else {
-        setLoading(true);
-        getUserContent(user.uid)
-          .then((data) => {
-            setContent(data as ContentItemSummary[]);
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      }
+    if (authLoading) return;
+
+    if (!user) {
+      router.push('/login');
+      return;
     }
+    
+    let hasCachedData = false;
+    try {
+      const cachedContentJson = localStorage.getItem(`userContent_${user.uid}`);
+      if (cachedContentJson) {
+        const cachedContent = JSON.parse(cachedContentJson);
+        if (Array.isArray(cachedContent)) {
+          setContent(cachedContent);
+          hasCachedData = true;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to parse content from localStorage", error);
+      localStorage.removeItem(`userContent_${user.uid}`);
+    }
+
+    setLoading(!hasCachedData);
+
+    getUserContent(user.uid)
+      .then((data) => {
+        const contentData = data as ContentItemSummary[];
+        setContent(contentData);
+        try {
+          localStorage.setItem(`userContent_${user.uid}`, JSON.stringify(contentData));
+        } catch (error) {
+          console.error("Failed to save content to localStorage", error);
+        }
+      })
+      .catch((error) => {
+          console.error("Failed to fetch user content:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+      
   }, [user, authLoading, router]);
 
   if (authLoading || loading) {
@@ -78,7 +105,7 @@ function DashboardContent() {
                                 {item.niche} - {item.type === 'posts' ? 'Post Ideas' : 'TikTok Script'}
                             </h2>
                             <p className="text-sm text-muted-foreground">
-                                Generated on {format(new Date(item.createdAt), 'MMMM d, yyyy')}
+                                {item.createdAt ? `Generated on ${format(new Date(item.createdAt), 'MMMM d, yyyy')}`: "Date not available"}
                             </p>
                         </div>
                     </div>
