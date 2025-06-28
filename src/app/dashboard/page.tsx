@@ -54,6 +54,12 @@ function DashboardContent() {
     getUserContent(user.uid)
       .then((data) => {
         const contentData = data as ContentItemSummary[];
+        // Sort by creation date descending
+        contentData.sort((a, b) => {
+          if (!a.createdAt || !b.createdAt) return 0;
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        });
+        
         setContent(contentData);
         try {
           localStorage.setItem(`userContent_${user.uid}`, JSON.stringify(contentData));

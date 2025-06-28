@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, orderBy, Timestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, Timestamp, doc, getDoc } from 'firebase/firestore';
 
 export async function getUserContent(userId: string): Promise<any[]> {
   if (!userId) {
@@ -10,7 +10,7 @@ export async function getUserContent(userId: string): Promise<any[]> {
 
   try {
     const contentRef = collection(db, 'content');
-    const q = query(contentRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
+    const q = query(contentRef, where('userId', '==', userId));
     const querySnapshot = await getDocs(q);
     
     const contentList = querySnapshot.docs.map(doc => {
