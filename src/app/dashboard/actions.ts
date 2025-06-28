@@ -3,27 +3,6 @@
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy, Timestamp, doc, getDoc } from 'firebase/firestore';
 
-// A helper to convert Firestore Timestamps to serializable strings
-const serializeFirestoreTimestamps = (value: any): any => {
-    if (value === null || value === undefined) {
-        return value;
-    }
-    if (value instanceof Timestamp) {
-        return value.toDate().toISOString();
-    }
-    if (Array.isArray(value)) {
-        return value.map(item => serializeFirestoreTimestamps(item));
-    }
-    if (typeof value === 'object') {
-        const newObj: { [key: string]: any } = {};
-        for (const key in value) {
-            newObj[key] = serializeFirestoreTimestamps(value[key]);
-        }
-        return newObj;
-    }
-    return value;
-}
-
 export async function getUserContent(userId: string): Promise<any[]> {
   if (!userId) {
     return [];
@@ -36,8 +15,14 @@ export async function getUserContent(userId: string): Promise<any[]> {
     
     const contentList = querySnapshot.docs.map(doc => {
       const data = doc.data();
-      // Firestore returns complex objects, we need to make sure they are serializable
-      const serializedData = serializeFirestoreTimestamps({ id: doc.id, ...data });
+      // Manually serialize the document to ensure complex types like Timestamps are converted.
+      const serializedData = {
+        ...data,
+        id: doc.id,
+        createdAt: data.createdAt instanceof Timestamp 
+            ? data.createdAt.toDate().toISOString() 
+            : data.createdAt || null,
+      };
       return serializedData;
     });
     
@@ -63,7 +48,14 @@ export async function getContentById(contentId: string, userId: string): Promise
                 console.error("User does not have access to this content.");
                 return null;
             }
-            return serializeFirestoreTimestamps({ id: docSnap.id, ...data });
+            // Manually serialize the document
+            return {
+              ...data,
+              id: docSnap.id,
+              createdAt: data.createdAt instanceof Timestamp 
+                  ? data.createdAt.toDate().toISOString() 
+                  : data.createdAt || null,
+            };
         } else {
             console.log("No such document!");
             return null;
