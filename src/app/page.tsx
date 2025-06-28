@@ -6,6 +6,10 @@ import { Check, Camera, Video, Sparkles, Star } from "lucide-react";
 import Link from "next/link";
 import Autoplay from "embla-carousel-autoplay";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 const plans = [
   {
@@ -73,6 +77,24 @@ const testimonials = [
   },
 ];
 
+const faqItems = [
+    {
+        question: "What kind of content can I generate?",
+        answer: "You can generate a wide range of content, including Instagram post ideas with captions and hashtags, and full TikTok video scripts with scene descriptions and audio suggestions. Our AI is tailored to various photography and videography niches."
+    },
+    {
+        question: "How does the monthly subscription work?",
+        answer: "Your subscription is valid for 30 days from the date of purchase. It gives you access to the features of your chosen plan. After 30 days, your plan will automatically revert to 'Free' unless you purchase it again. We do not store payment information or auto-renew subscriptions."
+    },
+    {
+        question: "Can I cancel my plan at any time?",
+        answer: "Since we do not have auto-renewal, there's no need to cancel. Your paid plan will simply expire after 30 days, and you can decide if you want to purchase it again. You can switch plans at any time by going to the pricing page."
+    },
+    {
+        question: "Is my data secure?",
+        answer: "Yes, security is our top priority. Your account is secured through Firebase Authentication, and all your generated content is stored securely in our database, linked only to your user ID."
+    }
+]
 
 export default function Home() {
   return (
@@ -205,6 +227,63 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <section id="faq" className="py-20 lg:py-32 bg-background/50 px-4">
+        <div className="container mx-auto max-w-3xl text-center">
+            <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">
+                Frequently Asked Questions
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+                Have questions? We've got answers.
+            </p>
+            <Accordion type="single" collapsible className="w-full mt-12 text-left">
+                {faqItems.map((item, index) => (
+                    <AccordionItem value={`item-${index}`} key={index}>
+                        <AccordionTrigger className="font-headline text-lg">{item.question}</AccordionTrigger>
+                        <AccordionContent className="text-base text-muted-foreground leading-relaxed">
+                            {item.answer}
+                        </AccordionContent>
+                    </AccordionItem>
+                ))}
+            </Accordion>
+        </div>
+      </section>
+
+      <section id="contact" className="py-20 lg:py-32 px-4">
+        <div className="container mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">
+                Get in Touch
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground mb-12">
+                Have a question or feedback? We'd love to hear from you.
+            </p>
+            <form className="text-left space-y-6" onSubmit={(e) => e.preventDefault()}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Name</Label>
+                        <Input id="name" placeholder="Your Name" />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" type="email" placeholder="your@email.com" />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="message">Message</Label>
+                    <Textarea id="message" placeholder="Your message..." rows={6} />
+                </div>
+                <div className="text-center">
+                    <Button type="submit" size="lg" className="font-bold">Send Message</Button>
+                </div>
+            </form>
+        </div>
+      </section>
+      
+      <footer className="py-8 border-t bg-background">
+        <div className="container mx-auto text-center text-muted-foreground text-sm">
+            <p>&copy; {new Date().getFullYear()} Contentographer AI. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }
