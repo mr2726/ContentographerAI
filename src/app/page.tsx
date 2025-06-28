@@ -10,6 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
 
 const plans = [
   {
@@ -97,6 +98,19 @@ const faqItems = [
 ]
 
 export default function Home() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const subject = encodeURIComponent(`Message from ${name} via Contentographer AI`);
+    const body = encodeURIComponent(
+      `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
+    );
+    window.location.href = `mailto:aru.aram99@gmail.com?subject=${subject}&body=${body}`;
+  };
+
   return (
     <div className="w-full">
       <section className="text-center py-20 lg:py-32 px-4">
@@ -257,20 +271,20 @@ export default function Home() {
             <p className="mt-4 text-lg text-muted-foreground mb-12">
                 Have a question or feedback? We'd love to hear from you.
             </p>
-            <form className="text-left space-y-6" onSubmit={(e) => e.preventDefault()}>
+            <form className="text-left space-y-6" onSubmit={handleContactSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <Label htmlFor="name">Name</Label>
-                        <Input id="name" placeholder="Your Name" />
+                        <Input id="name" placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} required />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" placeholder="your@email.com" />
+                        <Input id="email" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
                     </div>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="message">Message</Label>
-                    <Textarea id="message" placeholder="Your message..." rows={6} />
+                    <Textarea id="message" placeholder="Your message..." rows={6} value={message} onChange={(e) => setMessage(e.target.value)} required />
                 </div>
                 <div className="text-center">
                     <Button type="submit" size="lg" className="font-bold">Send Message</Button>
