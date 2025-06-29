@@ -7,10 +7,20 @@ import { generateContent } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import Loading from "./components/Loading";
 import { useAuth } from "@/context/AuthContext";
-import { doc, setDoc, serverTimestamp, deleteField } from "firebase/firestore";
+import { doc, serverTimestamp, deleteField, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { GenerateTiktokVideoScriptOutput } from "@/ai/flows/generate-tiktok-script";
 import type { GeneratePostIdeasOutput } from "@/ai/flows/generate-post-ideas";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export type GeneratedDataType =
   | (GeneratePostIdeasOutput & { type: "posts" })
@@ -26,6 +36,7 @@ function GeneratePageContent() {
   
   const [loading, setLoading] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -45,17 +56,18 @@ function GeneratePageContent() {
 
         if (planFromUrl && planFromUrl !== userData?.plan) {
           const userDocRef = doc(db, 'users', user.uid);
-          const dataToSet: { plan: string; planSubscribedAt?: any } = {
+          const dataToSet: { plan: string; planSubscribedAt?: any, lastFreeGenerationAt?: any } = {
             plan: planFromUrl,
           };
 
           if (planFromUrl === "pro" || planFromUrl === "ultimate") {
             dataToSet.planSubscribedAt = serverTimestamp();
+            dataToSet.lastFreeGenerationAt = deleteField();
           } else {
             dataToSet.planSubscribedAt = deleteField();
           }
           
-          setDoc(userDocRef, dataToSet, { merge: true })
+          updateDoc(userDocRef, dataToSet)
             .catch(e => console.error("Failed to update plan", e));
         }
       }
@@ -68,6 +80,11 @@ function GeneratePageContent() {
 
     try {
       const result = await generateContent(currentPlan, selectedNiche, user.uid);
+      if (result.limitReached) {
+        setShowLimitDialog(true);
+        setLoading(false);
+        return;
+      }
       if (result.error) {
         throw new Error(result.error);
       }
@@ -94,6 +111,22 @@ function GeneratePageContent() {
   return (
     <div className="container mx-auto py-12 px-4">
       <NicheSelector onNicheSelect={handleNicheSelect} />
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Free Limit Reached</AlertDialogTitle>
+            <AlertDialogDescription>
+              You've used your one free generation for the month. To continue creating, please upgrade to a Pro or Ultimate plan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Maybe Later</AlertDialogCancel>
+            <AlertDialogAction onClick={() => router.push('/pricing')}>
+              View Pricing
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

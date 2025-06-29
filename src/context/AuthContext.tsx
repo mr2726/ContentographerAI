@@ -9,6 +9,7 @@ import { LoaderCircle } from 'lucide-react';
 interface UserData {
   plan: 'free' | 'pro' | 'ultimate';
   planSubscribedAt?: Timestamp;
+  lastFreeGenerationAt?: Timestamp;
 }
 
 interface AuthContextType {
@@ -50,7 +51,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   // Subscription has expired. This update will trigger the listener again.
                   await updateDoc(userDocRef, {
                     plan: 'free',
-                    planSubscribedAt: deleteField()
+                    planSubscribedAt: deleteField(),
+                    lastFreeGenerationAt: deleteField()
                   });
                 } else {
                   // Subscription is active.
