@@ -93,10 +93,19 @@ export default function PricingPage() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                  {plan.planId === 'pro' && userData?.plan !== 'pro' ? (
+                    {plan.planId === 'pro' && userData?.plan !== 'pro' ? (
                       <Button asChild className="w-full font-bold" variant={plan.featured ? 'default' : 'outline'}>
                         <a
                           href="https://casperdevstore.lemonsqueezy.com/buy/4c86197a-a151-43b4-a1f7-59dd5f988369?embed=1&media=0&logo=0&desc=0&discount=0"
+                          className="lemonsqueezy-button"
+                        >
+                          {plan.cta}
+                        </a>
+                      </Button>
+                    ) : plan.planId === 'ultimate' && userData?.plan !== 'ultimate' ? (
+                      <Button asChild className="w-full font-bold" variant={plan.featured ? 'default' : 'outline'}>
+                        <a
+                          href="https://casperdevstore.lemonsqueezy.com/buy/ad2c4dd9-5252-4fb4-8906-28862a0a034f?embed=1&media=0&logo=0&desc=0&discount=0"
                           className="lemonsqueezy-button"
                         >
                           {plan.cta}
