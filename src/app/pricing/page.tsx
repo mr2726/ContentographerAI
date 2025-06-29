@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
@@ -48,6 +49,19 @@ const plans = [
 
 export default function PricingPage() {
   const { userData } = useAuth();
+  const [proUrl, setProUrl] = useState("https://casperdevstore.lemonsqueezy.com/buy/4c86197a-a151-43b4-a1f7-59dd5f988369?embed=1&media=0&logo=0&desc=0&discount=0");
+  const [ultimateUrl, setUltimateUrl] = useState("https://casperdevstore.lemonsqueezy.com/buy/ad2c4dd9-5252-4fb4-8906-28862a0a034f?embed=1&media=0&logo=0&desc=0&discount=0");
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const redirectBase = `${window.location.origin}/generate`;
+      const proRedirect = `${redirectBase}?plan=pro`;
+      const ultimateRedirect = `${redirectBase}?plan=ultimate`;
+
+      setProUrl(`https://casperdevstore.lemonsqueezy.com/buy/4c86197a-a151-43b4-a1f7-59dd5f988369?embed=1&media=0&logo=0&desc=0&discount=0&redirect_url=${encodeURIComponent(proRedirect)}`);
+      setUltimateUrl(`https://casperdevstore.lemonsqueezy.com/buy/ad2c4dd9-5252-4fb4-8906-28862a0a034f?embed=1&media=0&logo=0&desc=0&discount=0&redirect_url=${encodeURIComponent(ultimateRedirect)}`);
+    }
+  }, []);
 
   return (
     <>
@@ -96,7 +110,7 @@ export default function PricingPage() {
                     {plan.planId === 'pro' && userData?.plan !== 'pro' ? (
                       <Button asChild className="w-full font-bold" variant={plan.featured ? 'default' : 'outline'}>
                         <a
-                          href="https://casperdevstore.lemonsqueezy.com/buy/4c86197a-a151-43b4-a1f7-59dd5f988369?embed=1&media=0&logo=0&desc=0&discount=0"
+                          href={proUrl}
                           className="lemonsqueezy-button"
                         >
                           {plan.cta}
@@ -105,7 +119,7 @@ export default function PricingPage() {
                     ) : plan.planId === 'ultimate' && userData?.plan !== 'ultimate' ? (
                       <Button asChild className="w-full font-bold" variant={plan.featured ? 'default' : 'outline'}>
                         <a
-                          href="https://casperdevstore.lemonsqueezy.com/buy/ad2c4dd9-5252-4fb4-8906-28862a0a034f?embed=1&media=0&logo=0&desc=0&discount=0"
+                          href={ultimateUrl}
                           className="lemonsqueezy-button"
                         >
                           {plan.cta}

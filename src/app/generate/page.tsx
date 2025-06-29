@@ -34,45 +34,68 @@ function GeneratePageContent() {
 
   const { user, userData, loading: authLoading } = useAuth();
   
-  const [loading, setLoading] = useState(false);
+  // Set initial loading state to true if we are potentially updating a plan from the URL
+  const [loading, setLoading] = useState(!!planFromUrl);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        let redirectPath = '/login';
-        const search = searchParams.toString();
-        if (search) {
-          redirectPath += `?redirect=${encodeURIComponent(`/generate?${search}`)}`;
-        } else {
-          redirectPath += `?redirect=${encodeURIComponent('/generate')}`;
-        }
-        router.push(redirectPath);
+    if (authLoading) return;
+
+    if (!user) {
+      let redirectPath = '/login';
+      const search = searchParams.toString();
+      if (search) {
+        redirectPath += `?redirect=${encodeURIComponent(`/generate?${search}`)}`;
       } else {
-        const planToSet = planFromUrl || userData?.plan || 'free';
-        setCurrentPlan(planToSet);
-
-        if (planFromUrl && planFromUrl !== userData?.plan) {
-          const userDocRef = doc(db, 'users', user.uid);
-          const dataToSet: { plan: string; planSubscribedAt?: any, lastFreeGenerationAt?: any } = {
-            plan: planFromUrl,
-          };
-
-          if (planFromUrl === "pro" || planFromUrl === "ultimate") {
-            dataToSet.planSubscribedAt = serverTimestamp();
-            dataToSet.lastFreeGenerationAt = deleteField();
-          } else {
-            dataToSet.planSubscribedAt = deleteField();
-          }
-          
-          updateDoc(userDocRef, dataToSet)
-            .catch(e => console.error("Failed to update plan", e));
-        }
+        redirectPath += `?redirect=${encodeURIComponent('/generate')}`;
       }
+      router.push(redirectPath);
+      return;
     }
-  }, [user, userData, authLoading, router, planFromUrl, searchParams]);
+    
+    // Handle plan update from LemonSqueezy redirect
+    if (planFromUrl && planFromUrl !== userData?.plan) {
+      const userDocRef = doc(db, 'users', user.uid);
+      const dataToSet: { plan: string; planSubscribedAt?: any, lastFreeGenerationAt?: any } = {
+        plan: planFromUrl,
+      };
+
+      if (planFromUrl === "pro" || planFromUrl === "ultimate") {
+        dataToSet.planSubscribedAt = serverTimestamp();
+        dataToSet.lastFreeGenerationAt = deleteField();
+      } else {
+        dataToSet.planSubscribedAt = deleteField();
+      }
+      
+      updateDoc(userDocRef, dataToSet)
+        .then(() => {
+          toast({
+            title: "Plan Updated Successfully!",
+            description: `You are now on the ${planFromUrl} plan.`,
+          });
+          // Redirect to dashboard, removing the query params
+          router.push('/dashboard');
+        })
+        .catch(e => {
+          console.error("Failed to update plan", e);
+          toast({
+            title: "Error Updating Plan",
+            description: "There was an issue updating your plan. Please contact support.",
+            variant: "destructive",
+          });
+          // On error, stop loading and show the normal page by redirecting without params
+          router.push('/generate');
+        });
+    } else {
+      // No plan update needed, proceed to show the page
+      const planToSet = userData?.plan || 'free';
+      setCurrentPlan(planToSet);
+      setLoading(false);
+    }
+
+  }, [user, userData, authLoading, router, planFromUrl, searchParams, toast]);
 
   const handleNicheSelect = async (selectedNiche: string) => {
     if (!currentPlan || !user) return;
